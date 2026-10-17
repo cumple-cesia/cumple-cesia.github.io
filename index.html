@@ -390,10 +390,10 @@
     </div>
 
     <div class="botones">
-      <button class="btn primario" id="calendario" type="button">
+      <a class="btn primario" id="calendario" href="#" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>
         Agregar a mi calendario
-      </button>
+      </a>
     </div>
   </article>
 
@@ -533,25 +533,25 @@
   }
   tic();
 
-  // Archivo .ics para agregar al calendario
-  $('calendario').addEventListener('click', () => {
-    const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Invitacion Cesia//ES', 'CALSCALE:GREGORIAN',
-      'BEGIN:VEVENT',
-      'UID:cumple-cesia-7-20261107@invitacion',
-      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''),
-      'DTSTART:20261107T170000Z', 'DTEND:20261107T210000Z',
-      'SUMMARY:Cumpleaños de Cesia (7 años)',
-      'LOCATION:Finca La Herradura',
-      'DESCRIPTION:¡Ven a celebrar este día tan especial!',
-      'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Mañana es el cumple de Cesia', 'END:VALARM',
-      'END:VEVENT', 'END:VCALENDAR'
-    ].join('\r\n');
-    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
-    const a = Object.assign(document.createElement('a'), { href: url, download: 'cumple-cesia.ics' });
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-  });
+  // Agregar al calendario:
+  // iPhone abre el archivo .ics y Calendario muestra "Agregar";
+  // Android (y lo demás) abre Google Calendar con el evento ya lleno.
+  const calendario = $('calendario');
+  const esIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (esIOS) {
+    calendario.href = new URL('cumple-cesia.ics', location.href).href;
+    calendario.removeAttribute('target');
+  } else {
+    calendario.href = 'https://calendar.google.com/calendar/render?' + new URLSearchParams({
+      action: 'TEMPLATE',
+      text: 'Cumpleaños de Cesia (7 años)',
+      dates: '20261107T170000Z/20261107T210000Z',
+      ctz: 'America/Guatemala',
+      location: 'Finca La Herradura',
+      details: '¡Ven a celebrar este día tan especial!'
+    });
+  }
 
   $('volver').addEventListener('click', () => scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
 })();
